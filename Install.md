@@ -28,4 +28,4 @@ and Anaconda's installation instructions. Installations have been successfully t
     
 5. You're done!
     
-    a. You can use the files in [example_usage](https://github.com/sbowerma/qFADD.py/tree/master/example_usage)) directory to test the stability of your installation.
+    a. You can use the files in [example_usage](https://github.com/sbowerma/qFADD.py/tree/master/example_usage) directory to test the stability of your installation.
