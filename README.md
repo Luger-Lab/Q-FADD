@@ -1,5 +1,5 @@
 # qFADD.py
-This repository contains the python implementation of the "Quantitation of Fluorescence Accumulation after DNA Damage (Q-FADD)" Analysis Routine (https://doi.org/10.1016/j.bpj.2019.04.032). Q-FADD uses simulated free diffusion models to fit experimental DNA microirradiation accumulation timeseries, and the `qFADD.py` program utilizes a grid-search routine and multiple replicates per gridpoint to remove as much of the fitting procedure as possible from user bias.
+This repository contains the python implementation of the "Quantitation of Fluorescence Accumulation after DNA Damage (Q-FADD)" Analysis Routine (https://doi.org/10.1016/j.bpj.2019.04.032). Q-FADD uses simulated free diffusion models to fit experimental DNA microirradiation accumulation timeseries data, and the `qFADD.py` program utilizes a grid-search routine and multiple replicates per gridpoint to remove as much of the fitting procedure as possible from user bias.
 
 This package comes with the files necessary to run qFADD.py in both a command-line and GUI environments. Because `qFADD.py` makes use of the `mpi4py` module, installation of the code to high-performance parallel computing environments is possible. This repository also acts as the base code for the publicly-accessible Q-FADD webserver (www.colorado.edu/qfadd).
 
