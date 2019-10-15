@@ -7,7 +7,7 @@ This procedure will install both the command-line and GUI versions of the progra
 libraries such as OpenMPI).
     
     a. For Python, install the open-source Anaconda (v3) distribution, in accordance to your computing environment
-and Anaconda's installation instructions.
+and Anaconda's installation instructions. Installations have been successfully tested on CentOS 7 machines, but most Linux environments should be supported.
     
     b. A functioning Java environment is required to run the `python-bioformats` package (relies on `javabridge` module).
     Excessive version testing has not been conducted, but our installations were successful with the Java Development Kit (v11.0.2).
