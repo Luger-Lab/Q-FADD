@@ -16,6 +16,6 @@ and Anaconda's installation instructions.
     
     a. `conda install ffmpeg pyside2`
     
-    b. `pip install msgpack python-bioformats mpi4py nd2reader matplotlib-scalebar opencv-python`
+    b. `pip install msgpack python-bioformats mpi4py nd2reader==3.1.0 matplotlib-scalebar opencv-python`
 
 3. Download the qFADD code from this repository: 
