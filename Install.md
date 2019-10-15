@@ -27,4 +27,5 @@ and Anaconda's installation instructions. Installations have been successfully t
     location to your `PATH` variable.
     
 5. You're done!
+    
     a. You can use the `example_usage` directory to test the stability of your installation.
