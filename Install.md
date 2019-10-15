@@ -18,4 +18,13 @@ and Anaconda's installation instructions. Installations have been successfully t
     
     b. `pip install msgpack python-bioformats mpi4py nd2reader==3.1.0 matplotlib-scalebar opencv-python`
 
-3. Download the qFADD code from this repository: 
+3. Download the qFADD code from this repository: `git clone github.com/blah-blah-blah`
+
+4. Enter the `src/` directory, and run the `install.py` script.
+
+    a. For the `-install_path` option, you should either direct the `install.py` to install the programs to a folder within your 
+    `PATH` variable (such as the `bin/` folder of your Anaconda installation), or else you should manually add the `-install_path` 
+    location to your `PATH` variable.
+    
+5. You're done!
+    a. You can use the `example_usage` directory to test the stability of your installation.
