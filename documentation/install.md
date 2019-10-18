@@ -18,7 +18,7 @@ and Anaconda's installation instructions. Installations have been successfully t
     
     b. `pip install msgpack python-bioformats mpi4py nd2reader==3.1.0 matplotlib-scalebar opencv-python`
 
-3. Download the qFADD code from this repository: `git clone github.com/qFADD.py`
+3. Download the qFADD code from this repository: `git clone github.com/sbowerma/qFADD.py`
 
 4. Enter the `src/` directory, and run the `install.py` script.
 
