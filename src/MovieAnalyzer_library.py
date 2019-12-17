@@ -41,10 +41,10 @@ class RecruitmentMovieAnalyzer(object):
         self.additional_rois= 0
         #self.correct_bleach = True
         self.bleach_frames  = 0
-        self.threshold      = 'auto'
+        self.threshold      = -1 
         self.bg_correct     = True
 
-    def SetParameters(self,nuclear_channel='TRITC',protein_channel='EGFP',irrad_frame='auto',roi_buffer=[-10,0],track_nucleus=True,autosave=True,save_direct='./MovieAnalysis_output/',save_movie=True,save_roi_data=True,additional_rois=0,bleach_frames=0,threshold='auto',bg_correct=True,verbose=True):
+    def SetParameters(self,nuclear_channel='TRITC',protein_channel='EGFP',irrad_frame='auto',roi_buffer=[-10,0],track_nucleus=True,autosave=True,save_direct='./MovieAnalysis_output/',save_movie=True,save_roi_data=True,additional_rois=0,bleach_frames=0,threshold=-1,bg_correct=True,verbose=True):
         self.nuclear_channel= nuclear_channel
         self.protein_channel= protein_channel
         self.irrad_frame    = irrad_frame
@@ -150,16 +150,6 @@ class RecruitmentMovieAnalyzer(object):
                 this_video  = nd2.reader.ND2Reader(input_video)
                 this_tsteps = this_video.get_timesteps()
 
-                if self.save_movie:
-                    shifted_metadata= dict(
-                                    title='Q-FADD pre-process, drift correct',
-                                    artist='Q-FADD')
-                    raw_metadata    = dict(
-                                    title='Q-FADD pre-process, raw image',
-                                    artist='Q-FADD')
-#                    shift_writer= self.ffmpeg_writer(fps=3,metadata=shifted_metadata)
-#                    raw_writer  = self.ffmpeg_writer(fps=3,metadata=raw_metadata)
-
                 this_chans  = np.array(this_video.metadata['channels'],dtype=str)
                 this_pix    = this_video.metadata['pixel_microns']
                 self.pix_res= this_pix
@@ -202,7 +192,7 @@ class RecruitmentMovieAnalyzer(object):
                     this_nuc_frame  = this_video.get_frame_2D(c=nuc_chan,t=self.ts)
                     #1. get nuclear mask
                     #t0 = time.time()
-                    this_nuc_path,this_nuc_points,this_nuc_fill = self.getNuclearMask(this_nuc_frame,show_plots=False)#True)#not self.ts)#True)
+                    this_nuc_path,this_nuc_points,this_nuc_fill = self.getNuclearMask(this_nuc_frame,sigma=self.threshold)#True)#not self.ts)#True)
                     #tf = time.time()
                     #2. fit nuclear mask for drift
                     if self.ts==0:
@@ -272,7 +262,7 @@ class RecruitmentMovieAnalyzer(object):
                             plt.savefig(os.path.join(self.save_direct,this_chans[chan_idx]\
                                        +"_frame%04d" % (self.ts) +"_shifted.png"),format='png',dpi=300)
 #                            shift_writer.grab_frame()
-                            plt.close('all')
+                            #plt.close('all')
 
                             plt.figure(figsize=(6.,6.))
                             ax = plt.subplot(111)
@@ -327,12 +317,6 @@ class RecruitmentMovieAnalyzer(object):
                     for colID in range(len(self.roi_intensity_array[:,1])):
                         this_col = self.normalized_intensity_array[:,1+colID].astype(float)
                         self.normalized_intensity_array[:,1+colID] = this_col/this_col[0]
-
-                #for idx in range(len(self.roi0_intensity_array)):
-                #    print("Timestep: "+str(idx)+" ---")
-                #    print("\tROI0   : "+str(self.roi0_intensity_array[idx]))
-                #    print("\tTot    : "+str(self.bleach_correct_tot[idx]))
-                #    print("\tFract  : "+str(self.roi0_intensity_array[idx]/self.bleach_correct_tot[idx]))
 
                 #Print the intensity timeseries
                 ofile = open(this_ofile,'w')
@@ -599,22 +583,15 @@ class RecruitmentMovieAnalyzer(object):
 
         return output_frame
 
-    def getNuclearMask(self,nuclear_frame,show_plots=False,sigma=None):
-        mask    = np.copy(nuclear_frame)
-        mask_idx= np.where(nuclear_frame<np.median(nuclear_frame))
-        mask[mask_idx]  = 0
+    def getNuclearMask(self,nuclear_frame,sigma=-1):
 
-        elevation_map   = sobel(nuclear_frame)
-        
-        if sigma is None:
+        if sigma < 0:
             sigma_est   = restoration.estimate_sigma(nuclear_frame)
         else:
             sigma_est   = sigma
 
-        patch_kw    = dict(patch_size=5,patch_distance=6)
-        
-        denoise = restoration.denoise_nl_means(nuclear_frame,h=0.5*sigma_est,fast_mode=True,**patch_kw)
-        filtered= ndi.gaussian_filter(denoise,1)
+        filtered= ndi.gaussian_filter(nuclear_frame,0.5*sigma_est)
+
         seed    = np.copy(filtered,1)
         seed[1:-1,1:-1] = filtered.min()
         mask    = np.copy(filtered)
@@ -628,72 +605,11 @@ class RecruitmentMovieAnalyzer(object):
         self.clusters= DBSCAN(eps=np.sqrt(2),min_samples=2).fit(self.lit_crd)
         nuc_path, nuc_points, nuc_fill = self.findNucEdgeFromClusters(nuclear_frame)
         
-
-        if 0:
-            plt.figure(figsize=(5.0,5.0))
-            plt.scatter(self.lit_crd[:,1],self.lit_crd[:,0],marker='.',s=3,c=self.clusters.labels_,cmap=plt.get_cmap('tab20'))
-            plt.savefig('nuc_identification/frame'+str(self.ts)+'_clusters.png',format='png',dpi=400)
-
-        if show_plots:
-            plt.figure(figsize=(5.0,5.0))
-            hist,bins = np.histogram(nuclear_frame,bins=np.arange(np.max(nuclear_frame)))
-            plt.bar(bins[:-1],hist)
-            plt.axvline(np.median(nuclear_frame),label='median',linestyle='--',color='k')
-            plt.axvline(np.average(nuclear_frame),label='avg',linestyle='--',color='red')
-            plt.legend(loc=0)
-            plt.xlabel("Pixel Value")
-            plt.ylabel("Counts")
-            plt.savefig("nuc_identification/frame"+str(self.ts)+"_histogram.png",format='png',dpi=400)
-
-            plt.figure(figsize=(5.0,5.0))
-            denoise = restoration.denoise_nl_means(nuclear_frame,h=0.5*sigma_est,fast_mode=True,**patch_kw)
-            plt.imshow(denoise)
-            plt.savefig("nuc_identification/frame"+str(self.ts)+"_denoise.png",format='png',dpi=400)
-
-            filtered = ndi.gaussian_filter(denoise,1)
-            seed = np.copy(filtered)
-            seed[1:-1,1:-1] = filtered.min()
-            mask = np.copy(filtered)
-
-            dilated = morphology.reconstruction(seed,mask,method='dilation')
-            bgsub = filtered - dilated
-            plt.figure(figsize=(5.0,5.0))
-            plt.imshow(bgsub)
-            plt.savefig('nuc_identification/frame'+str(self.ts)+"_denoise_bg_filtered.png",format='png',dpi=400)
-
-            plt.figure(figsize=(5.,5.))
-            hist,bins = np.histogram(bgsub,bins=np.arange(np.max(bgsub)))
-            plt.bar(bins[:-1],hist)
-            plt.axvline(np.median(bgsub),label='median',linestyle='--',color='k')
-            plt.axvline(np.average(bgsub),label='avg',linestyle='--',color='red')
-            plt.legend(loc=0)
-            plt.xlabel('Pixel Value')
-            plt.ylabel('Counts')
-            plt.savefig('nuc_identification/frame'+str(self.ts)+"_bgsub_histogram.png",format='png',dpi=400)
-
-            mask = np.zeros_like(bgsub)
-            mask_idx = np.where(bgsub > np.average(bgsub))
-            mask[mask_idx]=1
-
-            plt.figure(figsize=(5.0,5.0))
-            plt.imshow(nuclear_frame)
-            plt.savefig("nuc_identification/frame"+str(self.ts)+".png",format='png',dpi=400)
-
         if self.ts==0:
             self.saveNuclearMask(nuc_points)
 
         return nuc_path, nuc_points, nuc_fill
 
-    def ChaikanSmoothing(self,nuc_points,refinments=5):
-        for idx in range(refinements):
-            dummy = nuc_points.repeat(2,axis=0)
-            dummy2= np.empty_like(dummy)
-
-            dummy2[0]       = dummy[0]
-            dummy2[2::2]    = dummy[1:-1:2]
-            dummy2[1:-1:2]  = dummy[2::2]
-            dummy2[-1]      = dummy[-1]
-            coords  = dummy * 0.75 + dummy2 * 0.25
 
     def saveNuclearMask(self,nuc_points):
         ofile = open(self.output_prefix+"NuclMask.txt",'w')
@@ -738,10 +654,10 @@ class RecruitmentMovieAnalyzer(object):
             nuc_points = np.vstack((lower_bound,upper_bound))
             nuc_points = np.vstack((nuc_points,nuc_points[0]))
             #smooth the jagged edges
-            try:
-                nuc_points[:,1] = savgol_filter(nuc_points[:,1],51,3)
-            except:
-                pass
+            #try:
+            #    nuc_points[:,1] = savgol_filter(nuc_points[:,1],51,3)
+            #except:
+            #    pass
 
             for idx2 in range(len(x)):
                 blank[x[idx2],y[idx2]] = 1
@@ -815,10 +731,11 @@ class RecruitmentMovieAnalyzer(object):
                 start   = np.cumsum(self.histogram[:2])[::2]/ranges
                 stop    = (np.cumsum(self.histogram[:-3:-1])[::2]/ranges)[::-1]
                 self.smoothed_hist  = np.concatenate((start,temp,stop))
-
-                self.min_peak = scipy.signal.find_peaks(self.smoothed_hist)[0][0]
-        
-                self.min_peak_int   = self.smoothed_hist[self.min_peak]
+                self.peaks    = scipy.signal.find_peaks(self.smoothed_hist)[0]
+                #self.min_peak = np.where(self.smoothed_hist==np.max(self.smoothed_hist[self.peaks]))[0][0]
+                #self.min_peak_int   = self.smoothed_hist[self.min_peak]
+                self.min_peak_int = np.max(self.smoothed_hist[self.peaks])
+                self.min_peak = np.where(self.smoothed_hist==self.min_peak_int)[0][0]
                 self.bg_value       = bins[np.where(
                                       self.smoothed_hist[self.min_peak:]<=\
                                       (0.67*self.min_peak_int))[0][0]]\

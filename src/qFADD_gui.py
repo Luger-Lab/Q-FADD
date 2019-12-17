@@ -557,6 +557,8 @@ class MainWindow(QObject):
         self.min_D_line.textChanged.connect(self.min_D_line_changed)
         self.max_D_line.textChanged.connect(self.max_D_line_changed)
         self.D_step_line.textChanged.connect(self.D_step_line_changed)
+        self.timestep_line.textChanged.connect(self.timestep_line_changed)
+        self.pixel_res_line.textChanged.connect(self.pixel_line_changed)
 
     def min_D_line_changed(self, input_str):
         self.d_label_convert(input_str,'min')
@@ -567,29 +569,76 @@ class MainWindow(QObject):
     def D_step_line_changed(self, input_str):
         self.d_label_convert(input_str,'step')
 
+    def timestep_line_changed(self, input_str):
+        self.d_label_convert(input_str,'tstep')
+
+    def pixel_line_changed(self, input_str):
+        self.d_label_convert(input_str,'pix')
+
     def d_label_convert(self,input_str,which_label):
-        try:
-            value = int(input_str.replace(' ',''))
-            pix_value = float(self.pixel_res_line.text().replace(' ',''))
-            tstep   = float(self.timestep_line.text().replace(' ',''))
-
-            conv_value = 0.5 * value**2 * pix_value**2 * (1./tstep)
-            conv_value = str(np.around(conv_value,decimals=3))
-            label = "pix/step ("+conv_value+" &mu;m<sup>2</sup>/s)"
-
-            if which_label=='min':
-                self.d_min_label.setText(label)
-            elif which_label=='max':
-                self.d_max_label.setText(label)
-            elif which_label=='step':
-                self.d_step_label.setText(label)
-        except:
-            if which_label=='min':
-                self.d_min_label.setText("pix/step")
-            elif which_label=='max':
-                self.d_max_label.setText("pix/step")
-            elif which_label=='step':
+        if which_label == 'tstep':
+            try:
+                ts      = float(input_str.replace(' ',''))
+                pix     = float(self.pixel_res_line.text().replace(' ',''))
+                dmax    = int(self.max_D_line.text().replace(' ',''))
+                dmin    = int(self.min_D_line.text().replace(' ',''))
+            
+                convmin = 0.5 * dmin**2  * pix**2 * (1./ts)
+                convmax = 0.5 * dmax**2  * pix**2 * (1./ts)
+                convmin = str(np.around(convmin,decimals=3))
+                convmax = str(np.around(convmax,decimals=3))
+                minlabel= "pix/step ("+convmin+" &mu;m<sup>2</sup>/s)"
+                maxlabel= "pix/step ("+convmax+" &mu;m<sup>2</sup>/s)"
+                self.d_min_label.setText(minlabel)
+                self.d_max_label.setText(maxlabel)
                 self.d_step_label.setText("pix/step")
+            except:
+                self.d_min_label.setText("pix/step")
+                self.d_max_label.setText("pix/step")
+                self.d_step_label.setText("pix/step")
+        elif which_label=='pix':
+            try:
+                pix     = float(input_str.replace(' ',''))
+                ts      = float(self.timestep_line.text().replace(' ',''))
+                dmax    = int(self.max_D_line.text().replace(' ',''))
+                dmin    = int(self.min_D_line.text().replace(' ',''))
+            
+                convmin = 0.5 * dmin**2  * pix**2 * (1./ts)
+                convmax = 0.5 * dmax**2  * pix**2 * (1./ts)
+                convmin = str(np.around(convmin,decimals=3))
+                convmax = str(np.around(convmax,decimals=3))
+                minlabel= "pix/step ("+convmin+" &mu;m<sup>2</sup>/s)"
+                maxlabel= "pix/step ("+convmax+" &mu;m<sup>2</sup>/s)"
+                self.d_min_label.setText(minlabel)
+                self.d_max_label.setText(maxlabel)
+                self.d_step_label.setText("pix/step")
+            except:
+                self.d_min_label.setText("pix/step")
+                self.d_max_label.setText("pix/step")
+                self.d_step_label.setText("pix/step")
+        else:
+            try:
+                value = int(input_str.replace(' ',''))
+                pix_value = float(self.pixel_res_line.text().replace(' ',''))
+                tstep   = float(self.timestep_line.text().replace(' ',''))
+
+                conv_value = 0.5 * value**2 * pix_value**2 * (1./tstep)
+                conv_value = str(np.around(conv_value,decimals=3))
+                label = "pix/step ("+conv_value+" &mu;m<sup>2</sup>/s)"
+
+                if which_label=='min':
+                    self.d_min_label.setText(label)
+                elif which_label=='max':
+                    self.d_max_label.setText(label)
+                elif which_label=='step':
+                    self.d_step_label.setText("pix/step")
+            except:
+                if which_label=='min':
+                    self.d_min_label.setText("pix/step")
+                elif which_label=='max':
+                    self.d_max_label.setText("pix/step")
+                elif which_label=='step':
+                    self.d_step_label.setText("pix/step")
 
     def OpenMaskBrowser(self):
         self.file_window= FileBrowser(parent=self)

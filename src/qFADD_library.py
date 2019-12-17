@@ -370,9 +370,9 @@ class NuclearDiffusion(object):
             self.cut_exp_roi0   = self.exp_data[time_low_cut:,1]#,self.roi0_column]
             self.plot_exp_time  = np.copy(self.exp_times)
             self.plot_exp_roi0  = np.copy(self.exp_data[:,1])#,self.roi0_column])
-            self.cut_model_time = np.copy(self.model_time[:time_high_cut])
-            self.cut_model_idx  = np.arange(self.nsteps)[:time_high_cut]
-
+            self.cut_model_time = np.copy(self.model_time[:time_high_cut+1])
+            self.cut_model_idx  = np.arange(self.nsteps)[:time_high_cut+1]
+            #The "+1" to the idx is to make sure the interpolation range is adequately captured, but not excessively wider than the experiment's range
         if self.use_f_formula:
             try:
                 self.approximate_mobile_fraction()
@@ -769,12 +769,12 @@ class NuclearDiffusion(object):
         self.plot_roi_intensity_timeseries()             
     
     def report_best_model(self):
-        ofile = open(self.output_prefix+"_best_5_models.csv",'w')
+        ofile = open(self.output_prefix+"_all_models.csv",'w')
         ofile.write("#D(pix/step),D(um^2/s),F(ppt),r^2,RMSD(A.U.),\n")
         self.sorted_rmsd    = np.sort(self.rmsd_matrix,axis=None)
-        top_5_rmsd  = self.sorted_rmsd[:5]
-        for rmsd_idx in range(np.min([5,self.n_sets])):
-            this_rmsd = top_5_rmsd[rmsd_idx]
+        #top_5_rmsd  = self.sorted_rmsd[:5]
+        for rmsd_idx in range(self.n_sets): #range(np.min([5,self.n_sets])):
+            this_rmsd = self.sorted_rmsd[rmsd_idx]
             if self.n_d > 1 and self.n_m > 1:
                 model_idx = np.where(self.rmsd_matrix==this_rmsd)
             
@@ -856,7 +856,7 @@ class NuclearDiffusion(object):
                 plt.contourf(
                     self.d_range_um, #self.d_range,
                     self.m_range,np.around(self.rmsd_matrix.T,decimals=3),
-                    np.linspace(0.0,1.0,num=21),cmap='rainbow')
+                    np.linspace(0.0,0.5,num=21),cmap='rainbow')
                 plt.xlabel(r'D ($\rm{\mu m ^{2} / s}$)')
                 plt.ylabel('Mobile Fraction (parts per thousand)')
                 cb = plt.colorbar()
