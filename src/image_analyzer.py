@@ -44,7 +44,7 @@ else:
     print("\n\n\tERROR: Either a movie file (-m_file) or a directory of movie files (-batch_dir) must be supplied!!!\n\n")
     javabridge.kill_vm()
     quit()
-analyzer.SetParameters(protein_channel=args.prot_chan,nuclear_channel=args.nuc_chan,additional_rois=args.n_roi,bleach_frames=args.bg_correct,save_direct=args.out_dir,roi_buffer=[args.x_buff,args.y_buff],irrad_frame=args.pre_frames,bg_correct=args.bg_correct,track_nucleus=args.drift_correct)
+analyzer.SetParameters(protein_channel=args.prot_chan,nuclear_channel=args.nuc_chan,additional_rois=args.n_roi,bleach_frames=args.pre_frames,save_direct=args.out_dir,roi_buffer=[args.x_buff,args.y_buff],irrad_frame=args.pre_frames,bg_correct=args.bg_correct,track_nucleus=args.drift_correct)
 
 #Image processing
 analyzer.ProcessFileList()

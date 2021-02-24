@@ -46,6 +46,25 @@ class NuclearDiffusion(object):
             elap_time = np.around(elap_time/60.,decimals=2)
             print("\n\nProgram complete in "+str(elap_time)+" minutes.")
 
+    def load_balance(self):
+        #Balance the load according to mobile fraction, the rate-limiting step of each combo
+        if rank==0:
+            self.assignments= {}
+            self.cpu_load   = np.zeros(size,dtype=int)
+            for idx in range(self.n_sets):
+                assign_mobile = self.D_mobile_sets[idx][1]
+                assignee = np.where(self.cpu_load ==np.min(self.cpu_load))[0][0]
+                try:
+                    self.assignments[assignee] = np.append(self.assignments[assignee],idx)
+                except:
+                    self.assignments[assignee] = np.array([idx],dtype=int)
+                self.cpu_load[assignee] += assign_mobile
+        
+            for thread in range(1,size):
+                comm.send(self.assignments,dest=thread,tag=1)
+        else:
+            self.assignments = comm.recv(source=0,tag=1)
+
     def diffusion_model(self):
         #Make all possible combination of D and mobile values
         if rank==0:
@@ -59,10 +78,11 @@ class NuclearDiffusion(object):
             self.D_mobile_sets  = comm.recv(source=0,tag=0)
             self.n_sets = len(self.D_mobile_sets)
 
+        self.load_balance()
         self.best_r_squared = -99999.999 #Initialize r-square to very low value (good r^2 ~= 1.0)
         self.best_rmsd      = 999999.999 #Initialize rmsd to very high value (good rmsd ~= 0.0)
 
-        for combo_idx in range(rank,self.n_sets,size):
+        for combo_idx in self.assignments[rank]:
             self.this_D     = self.D_mobile_sets[combo_idx][0]
             self.this_mobile= self.D_mobile_sets[combo_idx][1]
             self.r2_track   = np.zeros(self.ensemble_size,dtype=float)

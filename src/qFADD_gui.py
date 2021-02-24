@@ -12,7 +12,7 @@ from PySide2.QtCore import QFile,QObject
 from PySide2 import QtCore,QtWidgets
 from PySide2.QtUiTools import QUiLoader
 
-install_path = INSTALL_PATH
+install_path = "/home/sabo8529/lab_software/new_python_environments/qfadd_github/anaconda3/bin/"
 
 class MainWindow(QObject):
     def __init__(self,ui_file,parent=None):
