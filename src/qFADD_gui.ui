@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1011</width>
-    <height>878</height>
+    <height>935</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -770,7 +770,7 @@
            <x>10</x>
            <y>10</y>
            <width>471</width>
-           <height>261</height>
+           <height>281</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_2" rowstretch="1,2,2,2,2,2,2,0" columnstretch="1,1,1,1,1">
@@ -970,6 +970,13 @@
            <widget class="QLabel" name="ROIColumnLabel">
             <property name="text">
              <string>ROI Column:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="2" colspan="2">
+           <widget class="QCheckBox" name="SpeckleCheckBox">
+            <property name="text">
+             <string>ROI Is Speckle</string>
             </property>
            </widget>
           </item>
